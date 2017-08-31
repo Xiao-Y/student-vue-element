@@ -9,8 +9,8 @@
     <el-table-column prop="date" label="出版时间" sortable></el-table-column>
     <el-table-column label="操作" width="180">
       <template scope="scope">
-             <el-button @click="delBook(scope.$index,scope.row)" el-button type="danger">删除</el-button>
-         </template>
+        <el-button @click="delBook(scope.$index,scope.row)" el-button type="danger">删除</el-button>
+      </template>
     </el-table-column>
   </el-table>
 
@@ -38,7 +38,7 @@
       <tr>
         <td>出版时间</td>
         <td>
-          <el-date-picker v-model="book.date" type="date" format="yy-MM-dd" placeholder="选择日期"></el-date-picker>
+          <el-date-picker v-model="date" formatter="yyyy-MM-dd" type="date" placeholder="选择日期"></el-date-picker>
         </td>
       </tr>
       <tr>
@@ -57,7 +57,8 @@ export default {
     return {
       url: './static/book.json',
       books: [],
-      book: {}
+      book: {},
+      date: ''
     }
   },
   created() { //初始化数据
@@ -68,7 +69,7 @@ export default {
       const self = this;
       self.$axios.get(self.url).then(function(resp) {
         console.info(resp);
-        self.books = resp.data
+        self.books = resp.data;
         console.info(self.books);
       }).catch(function(err) {
         console.info(err);
@@ -80,6 +81,9 @@ export default {
     submitData: function() { //提交表单
       const self = this;
       self.book.id = self.books.length + 1;
+      self.book.date = self.date;
+      console.info(self.date);
+      console.info(self.book);
       self.books.push(self.book);
       self.book = {};
       document.getElementById('addBook').style.display = 'none';
