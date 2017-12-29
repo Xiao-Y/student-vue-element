@@ -1,125 +1,174 @@
 <template>
-<div>
-  <el-button @click="addBookButton" el-button type="info">添加</el-button>
-  <el-table :data="books" style="width: 100%" :default-sort="{prop: 'id', order: 'descending'}">
-    <el-table-column prop="id" label="ID" sortable width="180"></el-table-column>
-    <el-table-column prop="author" label="作者"></el-table-column>
-    <el-table-column prop="name" label="姓名"></el-table-column>
-    <el-table-column prop="price" label="价格" sortable></el-table-column>
-    <el-table-column prop="date" label="出版时间" sortable></el-table-column>
-    <el-table-column label="操作" width="180">
-      <template scope="scope">
-        <el-button @click="delBook(scope.$index,scope.row)" el-button type="danger">删除</el-button>
-      </template>
-    </el-table-column>
-  </el-table>
+<div class="table">
+    <div class="crumbs">
+        <el-breadcrumb separator="/">
+            <el-breadcrumb-item><i class="el-icon-menu"></i> 表格</el-breadcrumb-item>
+            <el-breadcrumb-item>基础表格</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="handle-box">
+        <el-button type="primary" icon="delete" class="handle-del mr10" @click="delAll">批量删除</el-button>
+        <el-input v-model="book.name" placeholder="筛选书名关键词" class="handle-input mr10"></el-input>
+        <el-button type="primary" icon="search" @click="search">搜索</el-button>
+        <el-button type="primary" @click="dialogFormVisible = true">添加</el-button>
+    </div>
 
-  <!-- 添加数据 -->
-  <div id="addBook" style="display: none">
-    <table>
-      <tr>
-        <td>作者</td>
-        <td>
-          <el-input v-model="book.author" placeholder="请输入内容"></el-input>
-        </td>
-      </tr>
-      <tr>
-        <td>姓名</td>
-        <td>
-          <el-input v-model="book.name" placeholder="请输入内容"></el-input>
-        </td>
-      </tr>
-      <tr>
-        <td>价格</td>
-        <td>
-          <el-input v-model="book.price" placeholder="请输入内容"></el-input>
-        </td>
-      </tr>
-      <tr>
-        <td>出版时间</td>
-        <td>
-          <el-date-picker v-model="date" formatter="yyyy-MM-dd" type="date" placeholder="选择日期"></el-date-picker>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="4">
-          <el-button @click="submitData" el-button type="info">提交</el-button>
-        </td>
-      </tr>
-    </table>
-  </div>
+    <el-table :data="books" style="width: 100%" :default-sort="{prop: 'id', order: 'descending'}" @selection-change="handleSelectionChange">
+        <el-table-column type="selection"></el-table-column>
+        <el-table-column prop="id" label="ID" sortable width="180"></el-table-column>
+        <el-table-column prop="author" label="作者"></el-table-column>
+        <el-table-column prop="name" label="书名"></el-table-column>
+        <el-table-column prop="price" label="价格" sortable></el-table-column>
+        <el-table-column prop="date" label="出版时间" :formatter="dateFormat" sortable></el-table-column>
+        <el-table-column label="操作" width="180">
+            <template scope="scope">
+                <el-button @click="delBook(scope.$index,scope.row)" el-button type="danger">删除</el-button>
+                <el-button @click="editBook(scope.$index,scope.row)" el-button type="primary">修改</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+
+    <!-- 添加数据 -->
+    <el-dialog title="信息" :visible.sync="dialogFormVisible">
+        <el-form :model="book">
+            <el-form-item label="作者" :label-width="formLabelWidth">
+                <el-input v-model="book.author" placeholder="请输入内容" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="书名" :label-width="formLabelWidth">
+                <el-input v-model="book.name" placeholder="请输入内容" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="价格" :label-width="formLabelWidth">
+                <el-input v-model="book.price" placeholder="请输入内容" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="出版时间" :label-width="formLabelWidth">
+                <el-date-picker v-model="book.date" type="date" format="yyyy-MM-dd" value-format="yyyy-MM-dd" placeholder="选择日期"></el-date-picker>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="submitData">确 定</el-button>
+        </div>
+    </el-dialog>
 </div>
 </template>
 
 <script>
 export default {
-  data() {
-    return {
-      url: './static/book.json',
-      books: [],
-      book: {},
-      date: ''
+    data() {
+        return {
+            url: './static/data/book.json',
+            books: [],
+            book: {
+                author: '',
+                name: '',
+                price: '',
+                date: new Date()
+            },
+            dialogTableVisible: false,
+            dialogFormVisible: false,
+            formLabelWidth: '120px',
+            multipleSelection: [] //选种的
+        }
+    },
+    created() { //初始化数据
+        this.getData();
+    },
+    methods: {
+        dateFormat: function(row, column) { //格式化时间
+            var date = row[column.property];
+            if (date == undefined) {
+                return "";
+            }
+            return this.moment(date).format("YYYY-MM-DD");
+        },
+        getData: function() { //获取数据
+            const self = this;
+            self.$axios.get(self.url).then(function(resp) {
+                self.books = resp.data;
+            }).catch(function(err) {
+                console.info(err);
+            });
+        },
+        submitData: function() { //提交表单
+            const self = this;
+            self.book.id = self.books.length + 1;
+            self.books.push(self.book);
+            self.book = {};
+            self.dialogFormVisible = false;
+            self.$message({
+                message: '信息添加成功',
+                type: 'success'
+            });
+        },
+        editBook: function(index, row) {
+            const self = this;
+            //self.book = Object.assign({}, row);
+            self.book = row;
+            self.dialogFormVisible = true;
+        },
+        delBook: function(index, row) { //删除数据
+            const self = this;
+            self.$confirm('此操作将永久删除该信息, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                //如果没有排序可以直接使用
+                //删除
+                //books.splice(index, 1);
+                //如果有排序
+                var index2 = self.books.indexOf(row);
+                console.info(index2);
+                self.books.splice(index2, 1);
+                //提示信息
+                self.$message({
+                    type: 'success',
+                    message: '删除成功!'
+                });
+            }).catch(() => {
+                self.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });
+            });
+        },
+        delAll: function() {
+            const self = this;
+            var multipleSelection = self.multipleSelection;
+            if (multipleSelection.length > 0) {
+                multipleSelection.forEach((value, key) => {
+                    var index = self.books.indexOf(value);
+                    self.books.splice(index, 1);
+                });
+                //提示信息
+                self.$message({
+                    type: 'success',
+                    message: '删除成功!'
+                });
+            }
+        },
+        search: function() {
+
+        },
+        handleSelectionChange: function(val) {
+            const self = this;
+            self.multipleSelection = val;
+        }
     }
-  },
-  created() { //初始化数据
-    this.getData();
-  },
-  methods: {
-    getData: function() { //获取数据
-      const self = this;
-      self.$axios.get(self.url).then(function(resp) {
-        console.info(resp);
-        self.books = resp.data;
-        console.info(self.books);
-      }).catch(function(err) {
-        console.info(err);
-      });
-    },
-    addBookButton: function() { //添加
-      document.getElementById('addBook').style.display = 'block';
-    },
-    submitData: function() { //提交表单
-      const self = this;
-      self.book.id = self.books.length + 1;
-      self.book.date = self.date;
-      console.info(self.date);
-      console.info(self.book);
-      self.books.push(self.book);
-      self.book = {};
-      document.getElementById('addBook').style.display = 'none';
-      self.$message({
-        message: '信息添加成功',
-        type: 'success'
-      });
-    },
-    delBook: function(index, row) { //删除数据
-      const self = this;
-      console.info(index);
-      console.info(row);
-      self.$confirm('此操作将永久删除该信息, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        //如果没有排序可以直接使用
-        //删除
-        //books.splice(index, 1);
-        //如果有排序
-        var index2 = self.books.indexOf(row);
-        console.info(index2);
-        self.books.splice(index2, 1);
-        //提示信息
-        self.$message({
-          type: 'success',
-          message: '删除成功!'
-        });
-      }).catch(() => {
-        self.$message({
-          type: 'info',
-          message: '已取消删除'
-        });
-      });
-    }
-  }
 }
 </script>
+
+<style scoped>
+.handle-box {
+    margin-bottom: 20px;
+}
+
+.handle-select {
+    width: 120px;
+}
+
+.handle-input {
+    width: 300px;
+    display: inline-block;
+}
+</style>
