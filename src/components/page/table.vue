@@ -8,9 +8,9 @@
     </div>
     <div class="handle-box">
         <el-button type="primary" icon="delete" class="handle-del mr10" @click="delAll">批量删除</el-button>
-        <el-input v-model="book.name" placeholder="筛选书名关键词" class="handle-input mr10"></el-input>
-        <el-button type="primary" icon="search" @click="search">搜索</el-button>
-        <el-button type="primary" @click="dialogFormVisible = true">添加</el-button>
+        <el-input v-model="searchCondition.name" placeholder="筛选书名关键词" class="handle-input mr10"></el-input>
+        <el-button type="primary" icon="search" @click="search()">搜索</el-button>
+        <el-button type="primary" @click="editBook()">添加</el-button>
     </div>
 
     <el-table :data="books" style="width: 100%" :default-sort="{prop: 'id', order: 'descending'}" @selection-change="handleSelectionChange">
@@ -56,22 +56,21 @@
 export default {
     data() {
         return {
-            url: './static/data/book.json',
-            books: [],
-            book: {
-                author: '',
-                name: '',
-                price: '',
-                date: new Date()
-            },
-            dialogTableVisible: false,
-            dialogFormVisible: false,
             formLabelWidth: '120px',
-            multipleSelection: [] //选种的
+            url: './static/data/book.json', //表单数据url
+            books: [], //列表数据
+            book: this.clearBook(), //表单数据
+            dialogFormVisible: false, //是否显示表单
+            multipleSelection: [], //选种的
+            searchCondition: {
+                name: ''
+            } //搜索条件
         }
     },
-    created() { //初始化数据
-        this.getData();
+    created() { //初始化页面
+        //获取数据
+        const self = this;
+        self.getData();
     },
     methods: {
         dateFormat: function(row, column) { //格式化时间
@@ -91,19 +90,35 @@ export default {
         },
         submitData: function() { //提交表单
             const self = this;
-            self.book.id = self.books.length + 1;
+            var message = '信息添加成功';
+            var id = self.book.id;
+            if (id == '') {
+                id = self.books.length + 1;
+            } else {
+                //查询数据的索引位置
+                var index = self.books.findIndex((item, index) => {
+                    return item.id == id;
+                });
+                if (index != -1) {
+                    self.books.splice(index, 1);
+                    message = '信息修改成功';
+                }
+            }
+            self.book.id = id;
             self.books.push(self.book);
-            self.book = {};
             self.dialogFormVisible = false;
             self.$message({
-                message: '信息添加成功',
+                message: message,
                 type: 'success'
             });
         },
         editBook: function(index, row) {
             const self = this;
-            //self.book = Object.assign({}, row);
-            self.book = row;
+            self.book = self.clearBook();
+            if (row) {
+                //self.book = Object.assign({}, row);
+                self.book = row;
+            }
             self.dialogFormVisible = true;
         },
         delBook: function(index, row) { //删除数据
@@ -148,11 +163,29 @@ export default {
             }
         },
         search: function() {
-
+            const self = this;
+            if (self.searchCondition.name) {
+                var books = self.books.filter(function(item) {
+                    return item.name === self.searchCondition.name;
+                });
+                self.books = books;
+            } else {
+                self.getData();
+            }
         },
         handleSelectionChange: function(val) {
             const self = this;
             self.multipleSelection = val;
+        },
+        clearBook: function() { //清除模板
+            var book = {
+                id: '',
+                author: '',
+                name: '',
+                price: '',
+                date: new Date()
+            };
+            return book;
         }
     }
 }
