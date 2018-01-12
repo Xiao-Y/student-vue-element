@@ -22,11 +22,14 @@
         <el-table-column prop="date" label="出版时间" :formatter="dateFormat" sortable></el-table-column>
         <el-table-column label="操作" width="180">
             <template scope="scope">
-                <el-button @click="delBook(scope.$index,scope.row)" el-button type="danger">删除</el-button>
-                <el-button @click="editBook(scope.$index,scope.row)" el-button type="primary">修改</el-button>
-            </template>
+                    <el-button @click="delBook(scope.$index,scope.row)" el-button type="danger">删除</el-button>
+                    <el-button @click="editBook(scope.$index,scope.row)" el-button type="primary">修改</el-button>
+                </template>
         </el-table-column>
     </el-table>
+    <!-- 分页组件 -->
+    <el-pagination background layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[10, 20, 30, 40]" :current-page="4" :page-size="100" :total="400">
+    </el-pagination>
 
     <!-- 添加数据 -->
     <el-dialog title="信息" :visible.sync="dialogFormVisible">
@@ -64,7 +67,8 @@ export default {
             multipleSelection: [], //选种的
             searchCondition: {
                 name: ''
-            } //搜索条件
+            }, //搜索条件
+            page: this.getPage() //分页数据
         }
     },
     created() { //初始化页面
@@ -87,6 +91,14 @@ export default {
             }).catch(function(err) {
                 console.info(err);
             });
+        },
+        getPage: function() {
+            var page = {
+                total: 400,
+                pageSize: 100,
+                currentPage: 4
+            }
+            return page;
         },
         submitData: function() { //提交表单
             const self = this;
@@ -186,6 +198,12 @@ export default {
                 date: new Date()
             };
             return book;
+        },
+        handleSizeChange(val) {
+            console.log(`每页 ${val} 条`);
+        },
+        handleCurrentChange(val) {
+            console.log(`当前页: ${val}`);
         }
     }
 }
