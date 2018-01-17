@@ -13,7 +13,7 @@
         <el-button type="primary" @click="editBook()">添加</el-button>
     </div>
 
-    <el-table :data="books" style="width: 100%" :default-sort="{prop: 'id', order: 'descending'}" @selection-change="handleSelectionChange">
+    <el-table :data="menus" style="width: 100%" :default-sort="{prop: 'id', order: 'descending'}" @selection-change="handleSelectionChange">
         <el-table-column type="selection"></el-table-column>
         <el-table-column prop="id" label="ID" sortable width="80"></el-table-column>
         <el-table-column prop="title" label="菜单名" sortable></el-table-column>
@@ -71,7 +71,7 @@ export default {
         return {
             formLabelWidth: '120px',
             url: './static/data/book.json', //表单数据url
-            books: [], //列表数据
+            menus: [], //列表数据
             book: this.clearBook(), //表单数据
             dialogFormVisible: false, //是否显示表单
             multipleSelection: [], //选种的
@@ -103,7 +103,7 @@ export default {
             var url = urlUtil.SERVER.MENU_MANAGE;
             url = url + "?pageSize=" + self.page.pageSize + "&pageNo=" + self.page.currentPage;
             self.$axios.get(url).then(function(resp) {
-                self.books = resp.data.list;
+                self.menus = resp.data.list;
                 self.page = self.getPage(resp.data);
             }).catch(function(err) {
                 console.info(err);
@@ -138,19 +138,19 @@ export default {
             var message = '信息添加成功';
             var id = self.book.id;
             if (id == '') {
-                id = self.books.length + 1;
+                id = self.menus.length + 1;
             } else {
                 //查询数据的索引位置
-                var index = self.books.findIndex((item, index) => {
+                var index = self.menus.findIndex((item, index) => {
                     return item.id == id;
                 });
                 if (index != -1) {
-                    self.books.splice(index, 1);
+                    self.menus.splice(index, 1);
                     message = '信息修改成功';
                 }
             }
             self.book.id = id;
-            self.books.push(self.book);
+            self.menus.push(self.book);
             self.dialogFormVisible = false;
             self.$message({
                 message: message,
@@ -175,11 +175,11 @@ export default {
             }).then(() => {
                 //如果没有排序可以直接使用
                 //删除
-                //books.splice(index, 1);
+                //menus.splice(index, 1);
                 //如果有排序
-                var index2 = self.books.indexOf(row);
+                var index2 = self.menus.indexOf(row);
                 console.info(index2);
-                self.books.splice(index2, 1);
+                self.menus.splice(index2, 1);
                 //提示信息
                 self.$message({
                     type: 'success',
@@ -197,8 +197,8 @@ export default {
             var multipleSelection = self.multipleSelection;
             if (multipleSelection.length > 0) {
                 multipleSelection.forEach((value, key) => {
-                    var index = self.books.indexOf(value);
-                    self.books.splice(index, 1);
+                    var index = self.menus.indexOf(value);
+                    self.menus.splice(index, 1);
                 });
                 //提示信息
                 self.$message({
@@ -210,10 +210,10 @@ export default {
         search: function() {
             const self = this;
             if (self.searchCondition.name) {
-                var books = self.books.filter(function(item) {
+                var menus = self.menus.filter(function(item) {
                     return item.name === self.searchCondition.name;
                 });
-                self.books = books;
+                self.menus = menus;
             } else {
                 self.getData();
             }
