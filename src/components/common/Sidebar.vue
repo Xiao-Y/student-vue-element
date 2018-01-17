@@ -2,17 +2,17 @@
 <div class="sidebar">
     <el-menu :default-active="onRoutes" class="el-menu-vertical-demo" theme="dark" unique-opened router>
         <template v-for="item in items">
-                <template v-if="item.subs">
-                    <el-submenu :index="item.index">
-                        <template slot="title"><i :class="item.icon"></i>{{ item.title }}</template>
-        <el-menu-item v-for="(subItem,i) in item.subs" :key="i" :index="subItem.index">
-            {{ subItem.title }}
-        </el-menu-item>
-        </el-submenu>
-        </template>
-        <template v-else>
-                    <el-menu-item :index="item.index">
-                        <i :class="item.icon"></i>{{ item.title }}
+                <template v-if="item.children">
+                    <el-submenu :index="item.menucode">
+                        <template slot="title"><i :class="item.vicon"></i>{{ item.title }}</template>
+                        <el-menu-item v-for="(subItem,i) in item.children" :key="i" :index="subItem.menucode">
+                            {{ subItem.title }}
+                        </el-menu-item>
+                    </el-submenu>
+                </template>
+                <template v-else>
+                    <el-menu-item :index="item.menucode">
+                        <i :class="item.vicon"></i>{{ item.title }}
                     </el-menu-item>
                 </template>
         </template>
@@ -21,10 +21,11 @@
 </template>
 
 <script>
+import URL from '../../utils/urlUtil';
+
 export default {
     data() {
         return {
-            url: './static/data/menu.json', //获取菜单数据url
             items: []
         }
     },
@@ -39,8 +40,10 @@ export default {
     },
     methods: {
         getMenuData: function() {
+            var menuUrl = URL.SERVER.HOME_MENU;
+            console.info(menuUrl);
             const self = this;
-            self.$axios.get(self.url).then(function(resp) {
+            self.$axios.get(menuUrl).then(function(resp) {
                 self.items = resp.data;
             }).catch(function(err) {
                 console.info(err);
