@@ -10,8 +10,9 @@ if (config != "debug") {
 
 var SERVER = {
     //获取菜单
-    HOME_MENU: base_server + "vue/homeController/menu",
-    MENU_MANAGE: base_server + "vue/sysMenu/menuManage",
+    HOME_MENU: base_server + "homeController/menu",
+    MENU_MANAGE: base_server + "sysMenu/menuManage",
+    MENU_EDIT: base_server + "sysMenu/menuEdit",
 }
 
 module.exports = {

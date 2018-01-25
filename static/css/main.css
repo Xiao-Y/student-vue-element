@@ -111,3 +111,6 @@ a{text-decoration: none}
 .editor-btn{
     margin-top: 20px;
 }
+.el-submenu__title{
+    color: #909399;
+}

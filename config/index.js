@@ -29,7 +29,7 @@ module.exports = {
         assetsPublicPath: '/',
         proxyTable: {
             '/api': {
-                target: 'http://127.0.0.1:8090/student-web',
+                target: 'http://127.0.0.1:8090/student-vue-web',
                 changeOrigin: true,
                 pathRewrite: {
                     '/api': ''

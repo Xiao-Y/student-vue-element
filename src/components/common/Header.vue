@@ -1,4 +1,4 @@
-<template>
+<template slot-scope="scope">
     <div class="header">
         <div class="logo">后台管理系统</div>
         <div class="user-info">

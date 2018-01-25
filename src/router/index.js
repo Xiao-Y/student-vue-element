@@ -9,13 +9,13 @@ export default new Router({
         redirect: '/login'
     }, {
         path: '/login',
-        component: resolve => require(['../components/page/Login.vue'], resolve)
+        component: resolve => require(['@/components/page/Login.vue'], resolve)
     }, {
         path: '/home',
-        component: resolve => require(['../components/common/Home.vue'], resolve),
+        component: resolve => require(['@/components/common/Home.vue'], resolve),
         children: [{
             path: '/menuManage',
-            component: resolve => require(['../components/page/system/menuManage'], resolve)
+            component: resolve => require(['@/components/page/system/menuManage'], resolve)
         }]
     }]
 })

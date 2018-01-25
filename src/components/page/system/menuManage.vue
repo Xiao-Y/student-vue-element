@@ -1,4 +1,4 @@
-<template>
+<template slot-scope="scope">
 <div class="table">
     <div class="crumbs">
         <el-breadcrumb separator="/">
@@ -8,25 +8,35 @@
     </div>
     <div class="handle-box">
         <el-button type="primary" icon="delete" class="handle-del mr10" @click="delAll">批量删除</el-button>
-        <el-input v-model="searchCondition.name" placeholder="筛选书名关键词" class="handle-input mr10"></el-input>
+        <el-input v-model="searchCondition.title" placeholder="筛选菜单关键词" class="handle-input mr10"></el-input>
         <el-button type="primary" icon="search" @click="search()">搜索</el-button>
-        <el-button type="primary" @click="editBook()">添加</el-button>
+        <el-button type="primary" @click="editMenu()">添加</el-button>
     </div>
 
-    <el-table :data="menus" style="width: 100%" :default-sort="{prop: 'id', order: 'descending'}" @selection-change="handleSelectionChange">
+    <el-table :data="menus" max-height="320" style="width: 100%" :default-sort="{prop: 'id', order: 'descending'}" @selection-change="handleSelectionChange">
         <el-table-column type="selection"></el-table-column>
-        <el-table-column prop="id" label="ID" sortable width="80"></el-table-column>
-        <el-table-column prop="title" label="菜单名" sortable></el-table-column>
-        <el-table-column prop="icon" label="图标"></el-table-column>
-        <el-table-column prop="spread" label="是否展开" width="80"></el-table-column>
-        <el-table-column prop="href" label="链接" sortable></el-table-column>
-        <el-table-column prop="validind" label="状态" sortable width="80"></el-table-column>
-        <el-table-column prop="displayno" label="排序值" sortable width="80"></el-table-column>
-        <el-table-column label="操作" width="120">
-            <template scope="scope">
-                    <el-button @click="delBook(scope.$index,scope.row)" size="mini" type="danger">删除</el-button>
-                    <el-button @click="editBook(scope.$index,scope.row)" size="mini" type="primary">修改</el-button>
-                </template>
+        <el-table-column prop="id" label="ID"></el-table-column>
+        <el-table-column prop="menucode" fixed label="菜单CODE" width="160"></el-table-column>
+        <el-table-column prop="title" fixed label="菜单名" sortable width="160"></el-table-column>
+        <el-table-column prop="href" label="路径" width="300"></el-table-column>
+        <el-table-column prop="validindName" label="状态" width="80">
+            <template slot-scope="scope">
+                <el-tag :type="scope.row.validind ? 'primary' : 'danger'" close-transition>{{scope.row.validindName}}</el-tag>
+            </template>
+        </el-table-column>
+        <el-table-column prop="spread" label="是否展开" width="70">
+            <template slot-scope="scope">
+                <el-tag :type="scope.row.spread ? 'primary' : 'success'" close-transition>{{scope.row.spreadName}}</el-tag>
+            </template>
+        </el-table-column>
+        <el-table-column prop="displayno" label="排序值" width="80"></el-table-column>
+        <el-table-column prop="vicon" label="图标"></el-table-column>
+        <el-table-column prop="pid" label="PID"></el-table-column>
+        <el-table-column label="操作" width="150" fixed="right">
+            <template slot-scope="scope">
+                <el-button @click="delMenu(scope.$index,scope.row)" size="mini" type="danger">删除</el-button>
+                <el-button @click="editMenu(scope.$index,scope.row)" size="mini" type="primary">修改</el-button>
+            </template>
         </el-table-column>
     </el-table>
     <!-- 分页组件 -->
@@ -40,20 +50,39 @@
     </el-pagination>
 
     <!-- 添加数据 -->
-    <el-dialog title="信息" :visible.sync="dialogFormVisible">
-        <el-form :model="book">
-            <el-form-item label="作者" :label-width="formLabelWidth">
-                <el-input v-model="book.author" placeholder="请输入内容" auto-complete="off"></el-input>
+    <el-dialog title="菜单信息" :visible.sync="dialogFormVisible">
+        <el-form :model="menu">
+            <el-form-item label="父级菜单" :label-width="formLabelWidth">
+                <el-select v-model="menu.pid" placeholder="请选择">
+                    <el-option v-for="item in pidMenu" :key="item.id" :label="item.title" :value="item.id">
+                        <span style="float: left">{{ item.title }}</span>
+                        <span style="float: right; color: #8492a6; font-size: 13px">{{ item.menucode }}</span>
+                    </el-option>
+                </el-select>
             </el-form-item>
-            <el-form-item label="书名" :label-width="formLabelWidth">
-                <el-input v-model="book.name" placeholder="请输入内容" auto-complete="off"></el-input>
+            <el-form-item label="菜单CODE" :label-width="formLabelWidth">
+                <el-input v-model="menu.menucode" placeholder="请输入内容" auto-complete="off"></el-input>
             </el-form-item>
-            <el-form-item label="价格" :label-width="formLabelWidth">
-                <el-input v-model="book.price" placeholder="请输入内容" auto-complete="off"></el-input>
+            <el-form-item label="菜单名" :label-width="formLabelWidth">
+                <el-input v-model="menu.title" placeholder="请输入内容" auto-complete="off"></el-input>
             </el-form-item>
-            <el-form-item label="出版时间" :label-width="formLabelWidth">
-                <el-date-picker v-model="book.date" type="date" format="yyyy-MM-dd" value-format="yyyy-MM-dd" placeholder="选择日期"></el-date-picker>
+            <el-form-item label="图标" :label-width="formLabelWidth">
+                <el-input v-model="menu.vicon" placeholder="请输入内容" auto-complete="off"></el-input>
             </el-form-item>
+            <el-form-item label="是否展开" :label-width="formLabelWidth">
+                <el-switch v-model="menu.spread" active-color="#13ce66" inactive-color="#ff4949" active-text="展开" inactive-text="折叠">
+                </el-switch>
+            </el-form-item>
+            <el-form-item label="状态" :label-width="formLabelWidth">
+                <el-switch v-model="menu.validind" active-color="#13ce66" inactive-color="#ff4949" active-text="有效" inactive-text="无效">
+                </el-switch>
+            </el-form-item>
+            <el-form-item label="排序值" :label-width="formLabelWidth">
+                <el-input-number v-model="menu.displayno" controls-position="right" :min="1"></el-input-number>
+            </el-form-item>
+            <!-- <el-form-item label="是否展开" :label-width="formLabelWidth">
+                <el-date-picker v-model="menu.date" type="date" format="yyyy-MM-dd" value-format="yyyy-MM-dd" placeholder="选择日期"></el-date-picker>
+            </el-form-item> -->
         </el-form>
         <div slot="footer" class="dialog-footer">
             <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -63,8 +92,8 @@
 </div>
 </template>
 
-<script>
-import urlUtil from '../../../utils/urlUtil';
+<script slot-scope="scope">
+import urlUtil from '@/utils/urlUtil';
 
 export default {
     data() {
@@ -72,16 +101,17 @@ export default {
             formLabelWidth: '120px',
             url: './static/data/book.json', //表单数据url
             menus: [], //列表数据
-            book: this.clearBook(), //表单数据
+            pidMenu: [], //父级菜单下拉
+            menu: this.clearMenu(), //表单数据
             dialogFormVisible: false, //是否显示表单
             multipleSelection: [], //选种的
             searchCondition: {
-                name: ''
+                title: ''
             }, //搜索条件
             page: {
-                total: 0,//总条数
-                pageSize: 10,//页面大小
-                currentPage: 1//当前页面号
+                total: 0, //总条数
+                pageSize: 10, //页面大小
+                currentPage: 1 //当前页面号
             } //分页数据
         }
     },
@@ -101,8 +131,13 @@ export default {
         getData: function() { //获取数据
             const self = this;
             var url = urlUtil.SERVER.MENU_MANAGE;
-            url = url + "?pageSize=" + self.page.pageSize + "&pageNo=" + self.page.currentPage;
-            self.$axios.get(url).then(function(resp) {
+            //添加分页数据
+            url += "?pageSize=" + self.page.pageSize + "&pageNo=" + self.page.currentPage;
+            //添加查询条件
+            var condition = self.getSearchCondition();
+            console.info(condition);
+            self.$axios.post(url,condition).then(function(resp) {
+                console.info(resp.data.list);
                 self.menus = resp.data.list;
                 self.page = self.getPage(resp.data);
             }).catch(function(err) {
@@ -123,6 +158,16 @@ export default {
             }
             return page;
         },
+        //获取查询条件
+        getSearchCondition: function(){
+            var condition = {};
+
+            var title = this.searchCondition.title;
+            if(title && title != ''){
+                condition.title = title;
+            }
+            return condition;
+        },
         handleSizeChange(val) { //页面大小切换
             console.log(`每页 ${val} 条`);
             this.page.pageSize = val;
@@ -134,9 +179,10 @@ export default {
             this.getData();
         },
         submitData: function() { //提交表单
+            console.info(this.menu);
             const self = this;
-            var message = '信息添加成功';
-            var id = self.book.id;
+            var message = '菜单添加成功';
+            var id = self.menu.id;
             if (id == '') {
                 id = self.menus.length + 1;
             } else {
@@ -149,24 +195,33 @@ export default {
                     message = '信息修改成功';
                 }
             }
-            self.book.id = id;
-            self.menus.push(self.book);
+            self.menu.validind ? self.menu.validindName = '有效' : self.menu.validindName = '无效';
+            self.menu.spread ? self.menu.spreadName = '展开' : self.menu.spreadName = '折叠';
+            self.menu.id = id;
+            self.menus.push(self.menu);
             self.dialogFormVisible = false;
             self.$message({
                 message: message,
                 type: 'success'
             });
         },
-        editBook: function(index, row) {
+        editMenu: function(index, row) {
             const self = this;
-            self.book = self.clearBook();
+            self.menu = self.clearMenu();
+            var url = urlUtil.SERVER.MENU_EDIT;
+            self.$axios.get(url).then(function(resp) {
+                console.info(resp.data);
+                self.pidMenu = resp.data.data.pidMenu;
+            }).catch(function(err) {
+                console.info(err);
+            });
             if (row) {
-                //self.book = Object.assign({}, row);
-                self.book = row;
+                //self.menu = Object.assign({}, row);
+                self.menu = row;
             }
             self.dialogFormVisible = true;
         },
-        delBook: function(index, row) { //删除数据
+        delMenu: function(index, row) { //删除数据
             const self = this;
             self.$confirm('此操作将永久删除该信息, 是否继续?', '提示', {
                 confirmButtonText: '确定',
@@ -209,28 +264,36 @@ export default {
         },
         search: function() {
             const self = this;
-            if (self.searchCondition.name) {
-                var menus = self.menus.filter(function(item) {
-                    return item.name === self.searchCondition.name;
-                });
-                self.menus = menus;
-            } else {
-                self.getData();
-            }
+            self.getData();
+            // if (self.searchCondition.name) {
+            //     var menus = self.menus.filter(function(item) {
+            //         return item.name === self.searchCondition.name;
+            //     });
+            //     self.menus = menus;
+            // } else {
+            //     self.getData();
+            // }
         },
         handleSelectionChange: function(val) { //复选框
             const self = this;
             self.multipleSelection = val;
         },
-        clearBook: function() { //清除模板
-            var book = {
+        clearMenu: function() { //清除模板
+            var menu = {
                 id: '',
-                author: '',
-                name: '',
-                price: '',
-                date: new Date()
+                pid: 0,
+                title: '',
+                vicon: '',
+                spread: false,
+                spreadName: "展开",
+                href: '',
+                pid: '',
+                validind: true,
+                validindName: '有效',
+                displayno: 1,
+                menucode: ''
             };
-            return book;
+            return menu;
         }
     }
 }
